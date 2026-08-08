@@ -5,29 +5,28 @@ Proyecto académico: Predicción de Precios de Luz (Minería de Datos). Backend 
 ## Estructura y límites
 
 - **3 partes independientes**, cada una casi un proyecto aparte con su propio entorno: `modelo/` (datos + entrenamiento), `backend/` (FastAPI), `frontend/` (React + Vite).
-- Las partes se integran ÚNICAMENTE vía el contrato de `POST /predict` (README sección 4). No acoplar código entre partes.
-- Fallback por diseño: backend responde precio simulado hasta recibir `modelo.pkl`; frontend usa `mockPredict()` hasta que el backend esté listo. Ambos cambios son el único punto de integración.
+- **`backend/` y `modelo/` están SIN código** (solo `.venv` + `requirements.txt` + carpetas vacías). Los hacen los demás integrantes; el frontend NO los toca.
+- Las partes se integran ÚNICAMENTE vía el contrato de `POST /predict` (README sección 4) + endpoints de la sección 4b. No acoplar código entre partes.
+- Fallback por diseño: frontend usa `mockPredict()`, `mockPredictions24h()` y `mockComparar()` en `frontend/src/api/predict.js` hasta que el backend esté listo. El único cambio futuro es activar los fetch reales (quedan comentados).
 
-## Contrato `POST /predict` (no cambiar sin acuerdo de las 3 partes)
+## Contrato de la API (no cambiar sin acuerdo de las 3 partes)
 
-- Request: `{"fecha": "YYYY-MM-DD", "hora": 0-23}`. `hora` es integer (`14`, no `"14"`), `fecha` siempre string ISO, nunca `Date` de JS.
-- Response 200: `{"precio_predicho": 62.35, "unidad": "EUR/MWh"}` — `precio_predicho` redondeado a 2 decimales, `unidad` fija `"EUR/MWh"`.
+- `POST /predict`: `{"fecha": "YYYY-MM-DD", "hora": 0-23}` → `{"precio_predicho": 62.35, "unidad": "EUR/MWh"}`. `hora` es integer (`14`, no `"14"`), `fecha` siempre string ISO, nunca `Date` de JS.
 - Error (400/422): `{"error": "hora debe estar entre 0 y 23"}`.
 - Nombres de campo exactos: `fecha`, `hora`, `precio_predicho`, `unidad`.
+- Endpoints nuevos (para backend): `POST /predict/24h` y `POST /predict/real` — ver README sección 4b. El frontend ya los consume con mocks.
 
 ## Gotchas técnicos
 
-- **CORS habilitado desde el día 1** en FastAPI (`CORSMiddleware`): React y FastAPI corren en puertos distintos en local (`http://localhost:8000/predict`).
-- `extract_features(fecha, hora)` de Parte 1 (modelo/): el orden exacto de columnas que el modelo espera está documentado tal cual porque `backend/preprocessing.py` lo replica/importa. Cambiarlo rompe el modelo.
-- `modelo.pkl` se guarda con `joblib.dump()`; se carga UNA vez al arrancar el servidor.
-- El CSV del dataset pesa varios MB: **no subirlo a git**, `.gitignore` de `data/` y el `.csv` en cada parte que lo use.
+- El frontend mapea el contrato del error del backend: si `resp.ok` es falso, lee `data.error` y lo muestra en pantalla.
+- `precio_real` en `/predict/real` puede ser `null` (no hay dato histórico): el frontend muestra "Sin dato real aún".
+- El CSV del dataset pesa varios MB: **no subirlo a git**, el `.gitignore` raíz ignora `*.csv` y `modelo/data/`.
+- El `modelo.pkl` (joblib) se carga UNA vez al arrancar el backend; lo maneja la Parte 2.
 
 ## Comandos
 
-- `modelo/`: `.venv/Scripts/python train.py` (requiere `data/energy_dataset.csv` descargado de Kaggle). Python 3.14, pandas 3.x, scikit-learn 1.9.
-- `backend/`: `.venv/Scripts/python -m uvicorn main:app --reload` (puerto 8000).
-- `frontend/`: `npm run dev` (Vite); build de verificación con `npm run build`; tests de UI con `npm test` (Vitest + Testing Library, mockean a `mockPredict`, no necesitan backend).
-- `extract_features` se puede probar con: `.venv/Scripts/python -c "from preprocessing import extract_features; print(extract_features('2026-08-11', 14))"`.
+- `frontend/`: `npm run dev` (Vite); build: `npm run build`; lint: `npm run lint`; tests: `npm test` (Vitest + RTK, mockean a `mockPredict*`, no necesitan backend).
+- `backend/` y `modelo/`: no tienen código aún; consultar README para los comandos que los demás deben crear.
 
 ## Convenciones
 
