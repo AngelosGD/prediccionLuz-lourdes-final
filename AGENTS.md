@@ -26,7 +26,7 @@ Proyecto académico: Predicción de Precios de Luz (Minería de Datos). Backend 
 
 - `modelo/`: `.venv/Scripts/python train.py` (requiere `data/energy_dataset.csv` descargado de Kaggle). Python 3.14, pandas 3.x, scikit-learn 1.9.
 - `backend/`: `.venv/Scripts/python -m uvicorn main:app --reload` (puerto 8000).
-- `frontend/`: `npm run dev` (Vite); build de verificación con `npm run build`.
+- `frontend/`: `npm run dev` (Vite); build de verificación con `npm run build`; tests de UI con `npm test` (Vitest + Testing Library, mockean a `mockPredict`, no necesitan backend).
 - `extract_features` se puede probar con: `.venv/Scripts/python -c "from preprocessing import extract_features; print(extract_features('2026-08-11', 14))"`.
 
 ## Convenciones
