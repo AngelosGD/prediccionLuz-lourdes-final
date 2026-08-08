@@ -7,18 +7,41 @@ import App from './App'
 
 vi.mock('./api/predict', () => ({
   mockPredict: vi.fn(),
+  mockPredictions24h: vi.fn(),
+  mockComparar: vi.fn(),
 }))
 
-import { mockPredict } from './api/predict'
+import { mockPredict, mockPredictions24h, mockComparar } from './api/predict'
+
+const PRECIOS_24 = Array.from({ length: 24 }, (_, h) => ({
+  hora: h,
+  precio_predicho: 50,
+}))
+PRECIOS_24[5].precio_predicho = 90 // hora más cara
+PRECIOS_24[11].precio_predicho = 20 // hora más barata
 
 async function llenarFormulario() {
-  await userEvent.type(screen.getByLabelText(/fecha/i), '2026-08-11')
-  await userEvent.selectOptions(screen.getByLabelText(/hora/i), '14')
+  await userEvent.type(screen.getByLabelText('Fecha'), '2026-08-11')
+  await userEvent.selectOptions(screen.getByLabelText('Hora'), '14')
 }
 
 describe('App (simulación de UI)', () => {
   beforeEach(() => {
     mockPredict.mockReset()
+    mockPredictions24h.mockReset()
+    mockPredictions24h.mockResolvedValue({
+      fecha: '2026-08-11',
+      unidad: 'EUR/MWh',
+      precios: PRECIOS_24,
+    })
+    mockComparar.mockReset()
+    mockComparar.mockResolvedValue({
+      fecha: '2026-08-11',
+      hora: 14,
+      precio_predicho: 62.35,
+      precio_real: null,
+      unidad: 'EUR/MWh',
+    })
   })
 
   it('muestra el hint inicial antes de consultar', () => {
@@ -71,6 +94,12 @@ describe('App (simulación de UI)', () => {
     )
 
     render(<App />)
+    // Esperamos a que la gráfica 24h termine de cargar para que su botón
+    // deje de decir "Calculando..." y no haya dos botones con ese texto.
+    await waitFor(() => {
+      expect(screen.getByText(/hora más cara/i)).toBeInTheDocument()
+    })
+
     await llenarFormulario()
     await userEvent.click(screen.getByRole('button', { name: /predecir precio/i }))
 
@@ -99,5 +128,62 @@ describe('App (simulación de UI)', () => {
     expect(
       screen.queryByText(/precio predicho/i),
     ).not.toBeInTheDocument()
+  })
+
+  it('resalta la hora más cara y la más barata en la gráfica 24h', async () => {
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByText(/hora más cara/i)).toBeInTheDocument()
+    })
+    expect(screen.getByText(/05:00/)).toBeInTheDocument()
+    expect(screen.getByText(/11:00/)).toBeInTheDocument()
+  })
+
+  it('muestra "Sin dato real aún" cuando no hay precio real', async () => {
+    render(<App />)
+
+    await userEvent.type(
+      screen.getByLabelText('Fecha de comparación'),
+      '2026-08-11',
+    )
+    await userEvent.selectOptions(
+      screen.getByLabelText('Hora de comparación'),
+      '14',
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: /comparar/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Sin dato real aún')).toBeInTheDocument()
+    })
+  })
+
+  it('muestra el precio real cuando el backend lo entrega', async () => {
+    mockComparar.mockResolvedValue({
+      fecha: '2026-08-11',
+      hora: 14,
+      precio_predicho: 62.35,
+      precio_real: 58.4,
+      unidad: 'EUR/MWh',
+    })
+
+    render(<App />)
+
+    await userEvent.type(
+      screen.getByLabelText('Fecha de comparación'),
+      '2026-08-11',
+    )
+    await userEvent.selectOptions(
+      screen.getByLabelText('Hora de comparación'),
+      '14',
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: /comparar/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('58.4')).toBeInTheDocument()
+    })
+    expect(screen.queryByText('Sin dato real aún')).not.toBeInTheDocument()
   })
 })
