@@ -325,6 +325,12 @@ body {
   font-size: 20px;
 }
 
+.comparacion .item .valor span {
+  font-size: 14px;
+  color: var(--texto-suave);
+  font-weight: 500;
+}
+
 .comparacion .sin-dato {
   color: var(--texto-suave);
   font-size: 15px;

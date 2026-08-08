@@ -55,15 +55,18 @@ function Grafico({ precios }) {
   const min = Math.min(...valores)
   const horaCara = precios.find((p) => p.precio_predicho === max)
   const horaBarata = precios.find((p) => p.precio_predicho === min)
+  const dosDigitos = (h) => String(h).padStart(2, '0')
 
   return (
     <div className="grafico-caja">
       <div className="leyenda">
-        <p className="mas-cara">
-          Hora más cara: <strong>{horaCara.hora}:00</strong> — {max} EUR/MWh
+        <p className="mas-cara" data-testid="hora-mas-cara">
+          Hora más cara: <strong>{dosDigitos(horaCara.hora)}:00</strong> — {max}{' '}
+          EUR/MWh
         </p>
-        <p className="mas-barata">
-          Hora más barata: <strong>{horaBarata.hora}:00</strong> — {min} EUR/MWh
+        <p className="mas-barata" data-testid="hora-mas-barata">
+          Hora más barata: <strong>{dosDigitos(horaBarata.hora)}:00</strong> — {min}{' '}
+          EUR/MWh
         </p>
       </div>
       <div className="grafico">
@@ -81,7 +84,7 @@ function Grafico({ precios }) {
                     : 'barra'
               }
               style={{ height: `${Math.max((p.precio_predicho / max) * 100, 4)}%` }}
-              title={`${p.hora}:00 — ${p.precio_predicho} EUR/MWh`}
+              title={`${dosDigitos(p.hora)}:00 — ${p.precio_predicho} EUR/MWh`}
             />
           )
         })}

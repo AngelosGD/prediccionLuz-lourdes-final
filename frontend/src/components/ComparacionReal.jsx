@@ -64,15 +64,15 @@ export default function ComparacionReal() {
         <div className="comparacion">
           <div className="item">
             <span>Predicho</span>
-            <strong>
-              {comparacion.precio_predicho} {comparacion.unidad}
+            <strong className="valor">
+              {comparacion.precio_predicho} <span>{comparacion.unidad}</span>
             </strong>
           </div>
           <div className="item">
             <span>Real</span>
             {comparacion.precio_real != null ? (
-              <strong>
-                {comparacion.precio_real} {comparacion.unidad}
+              <strong className="valor">
+                {comparacion.precio_real} <span>{comparacion.unidad}</span>
               </strong>
             ) : (
               <strong className="sin-dato">Sin dato real aún</strong>

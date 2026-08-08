@@ -136,8 +136,8 @@ describe('App (simulación de UI)', () => {
     await waitFor(() => {
       expect(screen.getByText(/hora más cara/i)).toBeInTheDocument()
     })
-    expect(screen.getByText(/05:00/)).toBeInTheDocument()
-    expect(screen.getByText(/11:00/)).toBeInTheDocument()
+    expect(screen.getByTestId('hora-mas-cara')).toHaveTextContent(/05:00/)
+    expect(screen.getByTestId('hora-mas-barata')).toHaveTextContent(/11:00/)
   })
 
   it('muestra "Sin dato real aún" cuando no hay precio real', async () => {
