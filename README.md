@@ -143,6 +143,62 @@ Este formato es fijo y **no debe cambiar** sin que las 3 partes se pongan de acu
 
 ---
 
+## 4b. Endpoints adicionales (mismo contrato base)
+
+`fecha` y `hora` respetan las reglas de la sección 4 (ISO string, hora integer 0-23, misma forma de error).
+
+**¿Quién lo implementa?** Estos endpoints los agrega **Parte 2 (backend)**. El frontend de Parte 3 ya los consume con mocks (no toca nada del servidor). `precio_real` se lee del dataset histórico de Parte 1; si la fecha no está en el dataset, `precio_real: null`.
+
+### `POST /predict/24h` — predicción de las 24 horas de un día
+
+Sirve para pintar la gráfica de las próximas 24 horas del frontend.
+
+**Request:**
+```json
+{
+  "fecha": "2026-08-11"
+}
+```
+
+**Response 200:**
+```json
+{
+  "fecha": "2026-08-11",
+  "unidad": "EUR/MWh",
+  "precios": [
+    { "hora": 0, "precio_predicho": 45.12 },
+    { "hora": 1, "precio_predicho": 42.88 },
+    "...hasta el 23..."
+  ]
+}
+```
+`precios` siempre tiene 24 elementos, de `hora: 0` a `hora: 23`. El frontend calcula la hora más cara y la más barata (no hace falta que lo haga el backend).
+
+### `POST /predict/real` — comparación predicho vs real
+
+Muestra cuánto acertó el modelo para una fecha pasada (demo de Minería de Datos). Para el backend: `precio_real` se lee del dataset histórico; si la fecha no está en el dataset, manda `precio_real: null`.
+
+Request:
+```json
+{
+  "fecha": "2026-08-11",
+  "hora": 14
+}
+```
+
+**Response 200:**
+```json
+{
+  "fecha": "2026-08-11",
+  "hora": 14,
+  "precio_predicho": 62.35,
+  "precio_real": 58.40,
+  "unidad": "EUR/MWh"
+}
+```
+
+---
+
 ## 5. Orden de trabajo sugerido
 
 1. Acordar el contrato de la sección 3 con el equipo (ya está definido arriba, solo confirmarlo)
