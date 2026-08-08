@@ -1,6 +1,9 @@
 import { useState } from 'react'
 
 const HORAS = Array.from({ length: 24 }, (_, i) => i)
+// Rango para evitar fechas absurdas en el input de fecha.
+const FECHA_MIN = '2015-01-01'
+const FECHA_MAX = '2099-12-31'
 
 export default function FormPrediccion({ onEnviar, cargando }) {
   const [fecha, setFecha] = useState('')
@@ -20,6 +23,8 @@ export default function FormPrediccion({ onEnviar, cargando }) {
         <input
           type="date"
           value={fecha}
+          min={FECHA_MIN}
+          max={FECHA_MAX}
           onChange={(e) => setFecha(e.target.value)}
         />
       </label>
