@@ -1,0 +1,10 @@
+# Entornos Python
+.venv/
+__pycache__/
+
+# Node
+node_modules/
+
+# Dataset grande (varios MB, no subir a git — README sección 7)
+modelo/data/
+*.csv
