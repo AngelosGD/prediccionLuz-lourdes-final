@@ -211,7 +211,28 @@ Todos los integrantes deben descargar este mismo dataset (requiere cuenta de Kag
 
 ---
 
-## 8. Checklist rápido antes de empezar
+## 8. Cómo correr el proyecto
+
+Cada parte se corre por separado, en su propia carpeta y entorno.
+
+**Parte 1 — Modelo** (en `modelo/`):
+1. Descargar el dataset (sección 7) y dejar el CSV en `modelo/data/energy_dataset.csv`
+2. `python -m venv .venv` (opcional, ya viene creado en el repo) e instalar `requirements.txt`
+3. `.venv/Scripts/python train.py` → entrena y genera `modelo.pkl`
+
+**Parte 2 — Backend** (en `backend/`):
+1. Activa el entorno e instala `requirements.txt`
+2. `.venv/Scripts/python -m uvicorn main:app --reload` → API en `http://localhost:8000`
+3. Probar: `POST http://localhost:8000/predict` con `{"fecha": "2026-08-11", "hora": 14}`
+4. Tests: `.venv/Scripts/python -m pytest`
+
+**Parte 3 — Frontend** (en `frontend/`):
+1. `npm install`
+2. `npm run dev` → abre la URL que muestra Vite (usa `mockPredict()` por ahora)
+
+---
+
+## 9. Checklist rápido antes de empezar
 
 - [ ] Los 3 integrantes confirmaron el contrato de la sección 3
 - [ ] Los 3 descargaron el mismo dataset (sección 6)
