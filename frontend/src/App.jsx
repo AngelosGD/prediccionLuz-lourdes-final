@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import FormPrediccion from './components/FormPrediccion'
+import Prediccion24h from './components/Prediccion24h'
+import ComparacionReal from './components/ComparacionReal'
 import { mockPredict } from './api/predict'
 import './App.css'
 
@@ -59,6 +61,9 @@ function App() {
           </p>
         </div>
       )}
+
+      <Prediccion24h />
+      <ComparacionReal />
     </div>
   )
 }
