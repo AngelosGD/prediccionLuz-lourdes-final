@@ -1,14 +1,16 @@
 :root {
-  --fondo: #0f172a;
-  --tarjeta: #1e293b;
-  --borde: #334155;
+  --fondo: #0b1220;
+  --tarjeta: #111a2e;
+  --tarjeta-suave: #16213a;
+  --borde: #22304f;
   --texto: #e2e8f0;
-  --texto-suave: #94a3b8;
+  --texto-suave: #8b98b3;
   --acento: #38bdf8;
+  --acento-oscuro: #0ea5e9;
   --verde: #4ade80;
   --rojo: #f87171;
 
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color: var(--texto);
   background: var(--fondo);
   color-scheme: light dark;
@@ -17,68 +19,92 @@
 
 body {
   margin: 0;
+  background:
+    radial-gradient(1200px 500px at 50% -120px, rgba(56, 189, 248, 0.12), transparent 60%),
+    var(--fondo);
+  min-height: 100svh;
   display: flex;
   justify-content: center;
-  min-height: 100svh;
 }
 
 #root {
   width: 100%;
-  max-width: 560px;
-  padding: 48px 20px;
+  max-width: 620px;
+  padding: 40px 20px 64px;
   box-sizing: border-box;
-  text-align: center;
 }
 
-h1 {
-  font-size: 28px;
-  color: #f1f5f9;
-  margin: 0 0 8px;
+.app h1 {
+  font-size: 30px;
+  color: #f8fafc;
+  margin: 0 0 10px;
+  letter-spacing: -0.5px;
 }
 
 .subtitulo {
   color: var(--texto-suave);
-  margin: 0 0 32px;
+  margin: 0 0 36px;
+  line-height: 1.5;
 }
 
 .formulario {
   background: var(--tarjeta);
   border: 1px solid var(--borde);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 24px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
 }
 
 .formulario label {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   text-align: left;
   font-weight: 600;
+  font-size: 14px;
+  color: var(--texto-suave);
 }
 
 .formulario input,
 .formulario select {
-  padding: 10px 12px;
-  border-radius: 8px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
   border: 1px solid var(--borde);
-  background: var(--fondo);
+  background: var(--tarjeta-suave);
   color: var(--texto);
   font-size: 16px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.formulario input:focus-visible,
+.formulario select:focus-visible {
+  outline: none;
+  border-color: var(--acento);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
 }
 
 .formulario button {
-  padding: 12px;
+  grid-column: 1 / -1;
+  padding: 14px;
   border: none;
-  border-radius: 8px;
-  background: var(--acento);
-  color: #0f172a;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--acento), var(--acento-oscuro));
+  color: #0b1220;
   font-weight: 700;
   font-size: 16px;
   cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.2s ease;
+}
+
+.formulario button:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
 }
 
 .formulario button:disabled {
@@ -86,39 +112,75 @@ h1 {
   cursor: not-allowed;
 }
 
+.ayuda {
+  color: var(--texto-suave);
+  font-size: 15px;
+  text-align: center;
+  margin: 12px 0 0;
+}
+
 .cargando {
   color: var(--texto-suave);
+  text-align: center;
 }
 
 .error {
   color: var(--rojo);
   font-weight: 600;
+  text-align: center;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  border-radius: 10px;
+  padding: 14px;
 }
 
 .resultado {
   background: var(--tarjeta);
   border: 1px solid var(--borde);
-  border-radius: 12px;
-  padding: 24px;
+  border-radius: 16px;
+  padding: 28px 24px;
+  text-align: center;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.consulta {
+  color: var(--texto-suave);
+  font-size: 14px;
+  margin: 0 0 16px;
 }
 
 .resultado-label {
   color: var(--texto-suave);
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   text-transform: uppercase;
-  font-size: 14px;
-  letter-spacing: 1px;
+  font-size: 12px;
+  letter-spacing: 1.5px;
 }
 
 .precio {
-  font-size: 40px;
+  font-size: 48px;
   font-weight: 800;
   color: var(--verde);
   margin: 0;
+  letter-spacing: -1px;
 }
 
 .precio span {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 500;
   color: var(--texto-suave);
+}
+
+@media (max-width: 480px) {
+  #root {
+    padding: 28px 14px 48px;
+  }
+
+  .formulario {
+    grid-template-columns: 1fr;
+  }
+
+  .app h1 {
+    font-size: 26px;
+  }
 }
