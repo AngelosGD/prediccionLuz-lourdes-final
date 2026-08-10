@@ -1,27 +1,22 @@
 :root {
-  --fondo: #0b1220;
-  --tarjeta: #111a2e;
-  --tarjeta-suave: #16213a;
-  --borde: #22304f;
-  --texto: #e2e8f0;
-  --texto-suave: #8b98b3;
-  --acento: #38bdf8;
-  --acento-oscuro: #0ea5e9;
-  --verde: #4ade80;
-  --rojo: #f87171;
+  --bg: #f5f6f7;
+  --surface: #ffffff;
+  --border: #e3e5e8;
+  --text: #16181d;
+  --text-secondary: #6b7280;
+  --accent: #2563eb;
+  --accent-hover: #1d50c8;
+  --good: #16a34a;
+  --bad: #dc2626;
 
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  color: var(--texto);
-  background: var(--fondo);
-  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
 }
 
 body {
   margin: 0;
-  background:
-    radial-gradient(1200px 500px at 50% -120px, rgba(56, 189, 248, 0.12), transparent 60%),
-    var(--fondo);
   min-height: 100svh;
   display: flex;
   justify-content: center;
@@ -29,82 +24,76 @@ body {
 
 #root {
   width: 100%;
-  max-width: 620px;
+  max-width: 640px;
   padding: 40px 20px 64px;
   box-sizing: border-box;
 }
 
 .app h1 {
-  font-size: 30px;
-  color: #f8fafc;
-  margin: 0 0 10px;
-  letter-spacing: -0.5px;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 6px;
 }
 
 .subtitulo {
-  color: var(--texto-suave);
-  margin: 0 0 36px;
-  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0 0 28px;
+  font-size: 15px;
 }
 
+/* ------------------------------------------------------------- formulario */
+
 .formulario {
-  background: var(--tarjeta);
-  border: 1px solid var(--borde);
-  border-radius: 16px;
-  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 28px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
 .formulario label {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  text-align: left;
+  gap: 6px;
+  font-size: 13px;
   font-weight: 600;
-  font-size: 14px;
-  color: var(--texto-suave);
+  color: var(--text-secondary);
 }
 
 .formulario input,
 .formulario select {
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--borde);
-  background: var(--tarjeta-suave);
-  color: var(--texto);
-  font-size: 16px;
-  box-sizing: border-box;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 15px;
 }
 
 .formulario input:focus-visible,
 .formulario select:focus-visible {
-  outline: none;
-  border-color: var(--acento);
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  border-color: transparent;
 }
 
 .formulario button {
   grid-column: 1 / -1;
-  padding: 14px;
+  padding: 12px;
   border: none;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--acento), var(--acento-oscuro));
-  color: #0b1220;
-  font-weight: 700;
-  font-size: 16px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
-  transition: transform 0.1s ease, opacity 0.2s ease;
 }
 
 .formulario button:hover:not(:disabled) {
-  filter: brightness(1.08);
-  transform: translateY(-1px);
+  background: var(--accent-hover);
 }
 
 .formulario button:disabled {
@@ -112,90 +101,91 @@ body {
   cursor: not-allowed;
 }
 
+/* --------------------------------------------------------------- estados */
+
 .ayuda {
-  color: var(--texto-suave);
-  font-size: 15px;
-  text-align: center;
-  margin: 12px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 8px 0;
 }
 
 .cargando {
-  color: var(--texto-suave);
-  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 8px 0;
 }
 
 .error {
-  color: var(--rojo);
-  font-weight: 600;
-  text-align: center;
-  background: rgba(248, 113, 113, 0.08);
-  border: 1px solid rgba(248, 113, 113, 0.35);
-  border-radius: 10px;
-  padding: 14px;
+  color: var(--bad);
+  font-size: 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 8px 0;
 }
 
+/* -------------------------------------------------------------- resultado */
+
 .resultado {
-  background: var(--tarjeta);
-  border: 1px solid var(--borde);
-  border-radius: 16px;
-  padding: 28px 24px;
-  text-align: center;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px 20px;
+  margin-bottom: 20px;
 }
 
 .consulta {
-  color: var(--texto-suave);
-  font-size: 14px;
-  margin: 0 0 16px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin: 0 0 12px;
 }
 
 .resultado-label {
-  color: var(--texto-suave);
-  margin: 0 0 6px;
-  text-transform: uppercase;
+  color: var(--text-secondary);
   font-size: 12px;
-  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 4px;
 }
 
 .precio {
-  font-size: 48px;
-  font-weight: 800;
-  color: var(--verde);
+  font-size: 36px;
+  font-weight: 700;
   margin: 0;
-  letter-spacing: -1px;
+  color: var(--text);
 }
 
 .precio span {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 500;
-  color: var(--texto-suave);
+  color: var(--text-secondary);
 }
 
+/* ---------------------------------------------------------------- tarjetas */
+
 .tarjeta {
-  background: var(--tarjeta);
-  border: 1px solid var(--borde);
-  border-radius: 16px;
-  padding: 24px;
-  margin-top: 28px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
-  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
 }
 
 .tarjeta h2 {
+  font-size: 16px;
   margin: 0 0 4px;
-  font-size: 20px;
-  color: #f8fafc;
 }
 
 .tarjeta .descripcion {
-  margin: 0 0 20px;
-  color: var(--texto-suave);
-  font-size: 14px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin: 0 0 16px;
 }
 
 .fila {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   align-items: center;
   margin-bottom: 16px;
@@ -203,36 +193,34 @@ body {
 
 .fila input,
 .fila select {
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--borde);
-  background: var(--tarjeta-suave);
-  color: var(--texto);
-  font-size: 15px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
 }
 
 .fila input:focus-visible,
 .fila select:focus-visible {
-  outline: none;
-  border-color: var(--acento);
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  border-color: transparent;
 }
 
 .fila button {
-  padding: 10px 18px;
+  padding: 9px 14px;
   border: none;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--acento), var(--acento-oscuro));
-  color: #0b1220;
-  font-weight: 700;
-  font-size: 15px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  transition: transform 0.1s ease, opacity 0.2s ease;
 }
 
 .fila button:hover:not(:disabled) {
-  filter: brightness(1.08);
-  transform: translateY(-1px);
+  background: var(--accent-hover);
 }
 
 .fila button:disabled {
@@ -240,25 +228,37 @@ body {
   cursor: not-allowed;
 }
 
+/* ----------------------------------------------------------------- grafico */
+
 .leyenda {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   margin-bottom: 12px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .leyenda p {
   margin: 0;
-  color: var(--texto-suave);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.leyenda .mas-cara strong {
-  color: var(--rojo);
+.leyenda p::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
 }
 
-.leyenda .mas-barata strong {
-  color: var(--verde);
+.leyenda .mas-cara::before {
+  background: var(--bad);
+}
+
+.leyenda .mas-barata::before {
+  background: var(--good);
 }
 
 .grafico-caja {
@@ -269,33 +269,35 @@ body {
   display: flex;
   align-items: flex-end;
   gap: 3px;
-  height: 170px;
-  padding: 4px 0 0;
+  height: 160px;
+  padding-top: 4px;
+  border-bottom: 1px solid var(--border);
 }
 
 .barra {
   flex: 1;
-  background: var(--borde);
+  background: #d7dbe1;
   border-radius: 3px 3px 0 0;
   min-height: 4px;
-  transition: background 0.15s ease;
 }
 
 .barra.mas-cara {
-  background: var(--rojo);
+  background: var(--bad);
 }
 
 .barra.mas-barata {
-  background: var(--verde);
+  background: var(--good);
 }
 
 .ejes {
   display: flex;
   justify-content: space-between;
   margin-top: 6px;
-  color: var(--texto-suave);
+  color: var(--text-secondary);
   font-size: 11px;
 }
+
+/* ------------------------------------------------------------- comparacion */
 
 .comparacion {
   display: grid;
@@ -305,19 +307,19 @@ body {
 }
 
 .comparacion .item {
-  background: var(--tarjeta-suave);
-  border: 1px solid var(--borde);
+  background: #fafbfc;
+  border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 16px;
+  padding: 14px;
   text-align: center;
 }
 
 .comparacion .item span {
   display: block;
   font-size: 12px;
-  color: var(--texto-suave);
+  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.08em;
   margin-bottom: 6px;
 }
 
@@ -325,29 +327,19 @@ body {
   font-size: 20px;
 }
 
-.comparacion .item .valor span {
-  font-size: 14px;
-  color: var(--texto-suave);
-  font-weight: 500;
-}
-
 .comparacion .sin-dato {
-  color: var(--texto-suave);
-  font-size: 15px;
+  color: var(--text-secondary);
+  font-size: 14px;
   font-weight: 500;
 }
 
 @media (max-width: 480px) {
   #root {
-    padding: 28px 14px 48px;
+    padding: 24px 14px 48px;
   }
 
   .formulario {
     grid-template-columns: 1fr;
-  }
-
-  .app h1 {
-    font-size: 26px;
   }
 
   .fila {
