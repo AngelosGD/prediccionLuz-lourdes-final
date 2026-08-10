@@ -110,17 +110,23 @@ def predecir_precio(fecha: str, hora: int) -> float:
 def _cargar_historico():
     """Lee el dataset de Parte 1 como {("YYYY-MM-DD", hora): precio_real}.
 
+    El campo `time` es hora local tipo "2015-01-01 00:00:00+01:00": fecha y hora
+    se extraen por slicing para no romper con timezones mezcladas (+01:00 en
+    invierno, +02:00 en verano), que pandas 3.x rechaza en pd.to_datetime.
     Devuelve None si el dataset aún no existe (precio_real = null).
     """
     if not DATASET_CSV.exists():
         return None
     try:
         df = pd.read_csv(DATASET_CSV, usecols=["time", "price actual"])
-        df["time"] = pd.to_datetime(df["time"], errors="coerce")
-        df = df.dropna(subset=["time", "price actual"])
+        fecha = pd.to_datetime(df["time"].str.slice(0, 10), errors="coerce")
+        hora = pd.to_numeric(df["time"].str.slice(11, 13), errors="coerce")
+        df = pd.DataFrame(
+            {"fecha": fecha, "hora": hora, "precio": df["price actual"]}
+        ).dropna()
         return {
-            (t.date().isoformat(), t.hour): round(float(p), 2)
-            for t, p in zip(df["time"], df["price actual"])
+            (t.date().isoformat(), int(h)): round(float(p), 2)
+            for t, h, p in zip(df["fecha"], df["hora"], df["precio"])
         }
     except Exception:
         return None
