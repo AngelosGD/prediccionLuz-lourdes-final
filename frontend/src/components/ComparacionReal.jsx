@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { mockComparar } from '../api/predict'
+import { fetchComparar } from '../api/predict'
 
 const HORAS = Array.from({ length: 24 }, (_, i) => i)
 
@@ -18,7 +18,7 @@ export default function ComparacionReal() {
     setError(null)
     setComparacion(null)
     try {
-      const r = await mockComparar(fecha, Number(hora))
+      const r = await fetchComparar(fecha, Number(hora))
       setComparacion(r)
     } catch (err) {
       setError(err.message || 'Error al comparar')

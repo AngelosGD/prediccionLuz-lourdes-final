@@ -6,12 +6,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import App from './App'
 
 vi.mock('./api/predict', () => ({
-  mockPredict: vi.fn(),
-  mockPredictions24h: vi.fn(),
-  mockComparar: vi.fn(),
+  predict: vi.fn(),
+  fetchPredictions24h: vi.fn(),
+  fetchComparar: vi.fn(),
 }))
 
-import { mockPredict, mockPredictions24h, mockComparar } from './api/predict'
+import { predict, fetchPredictions24h, fetchComparar } from './api/predict'
 
 const PRECIOS_24 = Array.from({ length: 24 }, (_, h) => ({
   hora: h,
@@ -27,15 +27,15 @@ async function llenarFormulario() {
 
 describe('App (simulación de UI)', () => {
   beforeEach(() => {
-    mockPredict.mockReset()
-    mockPredictions24h.mockReset()
-    mockPredictions24h.mockResolvedValue({
+    predict.mockReset()
+    fetchPredictions24h.mockReset()
+    fetchPredictions24h.mockResolvedValue({
       fecha: '2026-08-11',
       unidad: 'EUR/MWh',
       precios: PRECIOS_24,
     })
-    mockComparar.mockReset()
-    mockComparar.mockResolvedValue({
+    fetchComparar.mockReset()
+    fetchComparar.mockResolvedValue({
       fecha: '2026-08-11',
       hora: 14,
       precio_predicho: 62.35,
@@ -55,11 +55,11 @@ describe('App (simulación de UI)', () => {
     render(<App />)
     const boton = screen.getByRole('button', { name: /predecir precio/i })
     expect(boton).toBeDisabled()
-    expect(mockPredict).not.toHaveBeenCalled()
+    expect(predict).not.toHaveBeenCalled()
   })
 
   it('muestra el resultado tras llenar fecha y hora', async () => {
-    mockPredict.mockResolvedValue({
+    predict.mockResolvedValue({
       precio_predicho: 62.35,
       unidad: 'EUR/MWh',
     })
@@ -71,7 +71,7 @@ describe('App (simulación de UI)', () => {
     expect(boton).toBeEnabled()
     await userEvent.click(boton)
 
-    expect(mockPredict).toHaveBeenCalledWith('2026-08-11', 14)
+    expect(predict).toHaveBeenCalledWith('2026-08-11', 14)
 
     await waitFor(() => {
       expect(screen.getByText('EUR/MWh')).toBeInTheDocument()
@@ -85,7 +85,7 @@ describe('App (simulación de UI)', () => {
 
   it('cambia el texto del botón mientras calcula', async () => {
     const liberar = vi.fn()
-    mockPredict.mockReturnValue(
+    predict.mockReturnValue(
       new Promise((resolve) => {
         liberar.mockImplementation(() =>
           resolve({ precio_predicho: 50, unidad: 'EUR/MWh' }),
@@ -114,7 +114,7 @@ describe('App (simulación de UI)', () => {
   })
 
   it('muestra el error del contrato cuando el envío falla', async () => {
-    mockPredict.mockRejectedValue(new Error('hora debe estar entre 0 y 23'))
+    predict.mockRejectedValue(new Error('hora debe estar entre 0 y 23'))
 
     render(<App />)
     await llenarFormulario()
@@ -160,7 +160,7 @@ describe('App (simulación de UI)', () => {
   })
 
   it('muestra el precio real cuando el backend lo entrega', async () => {
-    mockComparar.mockResolvedValue({
+    fetchComparar.mockResolvedValue({
       fecha: '2026-08-11',
       hora: 14,
       precio_predicho: 62.35,

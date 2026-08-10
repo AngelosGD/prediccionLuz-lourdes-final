@@ -2,42 +2,34 @@
 // Contrato 24h: {fecha} -> {fecha, precios: [{hora, precio_predicho} x24], unidad}
 // Contrato real: {fecha, hora} -> {fecha, hora, precio_predicho, precio_real|null, unidad}
 //
-// Mientras no haya backend listo, solo usamos los mocks.
-// Cuando el backend exista, se reemplazan por los fetch reales (eso lo deja
-// claro para la parte de backend; el frontend solo cambia estas funciones).
+// Conexión con el backend activada: estos tres fetch llaman a la API local.
+// Los mocks (mockPredict, mockPredictions24h, mockComparar) se conservan por
+// si se quiere desarrollar sin backend o para los tests (que los mockean).
 
-// export async function predict(fecha, hora) {
-//   const resp = await fetch("http://localhost:8000/predict", {
-//     method: "POST",
-//     headers: { "Content-Type": "application/json" },
-//     body: JSON.stringify({ fecha, hora }),
-//   })
-//   const data = await resp.json()
-//   if (!resp.ok) throw new Error(data.error || "Error del servidor")
-//   return data
-// }
+async function pedir(url, body) {
+  const resp = await fetch(`http://localhost:8000${url}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  const data = await resp.json()
+  if (!resp.ok) throw new Error(data.error || 'Error del servidor')
+  return data
+}
 
-// export async function fetchPredictions24h(fecha) {
-//   const resp = await fetch("http://localhost:8000/predict/24h", {
-//     method: "POST",
-//     headers: { "Content-Type": "application/json" },
-//     body: JSON.stringify({ fecha }),
-//   })
-//   const data = await resp.json()
-//   if (!resp.ok) throw new Error(data.error || "Error del servidor")
-//   return data
-// }
+export async function predict(fecha, hora) {
+  return pedir('/predict', { fecha, hora })
+}
 
-// export async function fetchComparar(fecha, hora) {
-//   const resp = await fetch("http://localhost:8000/predict/real", {
-//     method: "POST",
-//     headers: { "Content-Type": "application/json" },
-//     body: JSON.stringify({ fecha, hora }),
-//   })
-//   const data = await resp.json()
-//   if (!resp.ok) throw new Error(data.error || "Error del servidor")
-//   return data
-// }
+export async function fetchPredictions24h(fecha) {
+  return pedir('/predict/24h', { fecha })
+}
+
+export async function fetchComparar(fecha, hora) {
+  return pedir('/predict/real', { fecha, hora })
+}
+
+// ---------------------------------------------------------------- mocks
 
 // Precio simulado con forma de campana diaria (pico por la tarde).
 function precioSimulado(hora) {
@@ -74,7 +66,6 @@ export function mockComparar(fecha, hora) {
         fecha,
         hora,
         precio_predicho: precioSimulado(hora),
-        // precio_real: null mientras no haya dataset histórico en backend
         precio_real: null,
         unidad: 'EUR/MWh',
       })

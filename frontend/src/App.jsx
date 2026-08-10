@@ -2,7 +2,7 @@ import { useState } from 'react'
 import FormPrediccion from './components/FormPrediccion'
 import Prediccion24h from './components/Prediccion24h'
 import ComparacionReal from './components/ComparacionReal'
-import { mockPredict } from './api/predict'
+import { predict } from './api/predict'
 import './App.css'
 
 function formatearFecha(iso) {
@@ -22,7 +22,7 @@ function App() {
     setResultado(null)
     setConsulta(null)
     try {
-      const resp = await mockPredict(fecha, hora)
+      const resp = await predict(fecha, hora)
       setConsulta({ fecha: formatearFecha(fecha), hora })
       setResultado(resp)
     } catch (e) {
