@@ -27,7 +27,6 @@ FEATURES = ["hora", "dia_semana", "mes", "es_fin_de_semana"]
 
 
 def extract_features(fecha: str, hora: int) -> list[float]:
-    """Misma firma y orden que backend/preprocessing.py (provisional de Parte 2)."""
     d = date.fromisoformat(fecha)
     es_fin_de_semana = 1 if d.weekday() >= 5 else 0
     return [float(hora), float(d.weekday()), float(d.month), float(es_fin_de_semana)]
