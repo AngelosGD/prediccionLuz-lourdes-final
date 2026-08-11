@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Proyecto académico: Predicción de Precios de Luz (Minería de Datos). Backend Python/FastAPI + Frontend React. El README.md es la fuente de verdad del proyecto; lee la sección correspondiente antes de tocar código.
+Proyecto académico: Predicción de Consumo Eléctrico (Minería de Datos). Backend Python/FastAPI + Frontend React. El README.md es la fuente de verdad del proyecto; lee la sección correspondiente antes de tocar código.
 
 ## Estructura y límites
 
@@ -12,27 +12,29 @@ Proyecto académico: Predicción de Precios de Luz (Minería de Datos). Backend 
 
 ## Contrato de la API (no cambiar sin acuerdo de las 3 partes)
 
-- `POST /predict`: `{"fecha": "YYYY-MM-DD", "hora": 0-23}` → `{"precio_predicho": 62.35, "unidad": "EUR/MWh"}`. `hora` es integer (`14`, no `"14"`), `fecha` siempre string ISO, nunca `Date` de JS.
+- `POST /predict`: `{"fecha": "YYYY-MM-DD", "hora": 0-23}` → `{"consumo_predicho": 25385.12, "unidad": "MW"}`. `hora` es integer (`14`, no `"14"`), `fecha` siempre string ISO, nunca `Date` de JS.
 - Error (400/422): `{"error": "hora debe estar entre 0 y 23"}`.
-- Nombres de campo exactos: `fecha`, `hora`, `precio_predicho`, `unidad`.
+- Nombres de campo exactos: `fecha`, `hora`, `consumo_predicho`, `unidad` (`"MW"`). En `/predict/real` también `consumo_real`. En `/predict/24h` el array es `consumos` con `{hora, consumo_predicho}`.
+- `POST /predict/rango`: `{"fecha_inicio", "fecha_fin"}` → `{"fecha_inicio", "fecha_fin", "unidad": "MW", "dias": [{fecha, consumos: [{hora, consumo_predicho} x24]}]}`. 422 si `fecha_fin < fecha_inicio` o rango > 366 días. El frontend lo consume con `mockPredictRango`.
 - Endpoints nuevos (para backend): `POST /predict/24h` y `POST /predict/real` — ver README sección 4b. El frontend ya los consume con mocks.
 
 ## Gotchas técnicos
 
 - El frontend mapea el contrato del error del backend: si `resp.ok` es falso, lee `data.error` y lo muestra en pantalla.
-- `precio_real` en `/predict/real` puede ser `null` (no hay dato histórico): el frontend muestra "Sin dato real aún".
-- `/predict/real` lee el histórico de `modelo/data/energy_dataset.csv` exigiendo las columnas `time` (formato `"2015-01-01 00:00:00+01:00"`, hora local) y `price actual`; si el archivo no existe o cambian los nombres de columna, falla en silencio y devuelve `precio_real: null` (no rompe la API). `_cargar_historico()` extrae fecha/hora por slicing porque pandas 3.x rechaza timezones mezcladas (`+01:00`/`+02:00`) en `pd.to_datetime`.
+- `consumo_real` en `/predict/real` puede ser `null` (no hay dato histórico): el frontend muestra "Sin dato real aún".
+- `/predict/real` lee el histórico de `modelo/data/energy_dataset.csv` exigiendo las columnas `time` (formato `"2015-01-01 00:00:00+01:00"`, hora local) y `total load actual`; si el archivo no existe o cambian los nombres de columna, falla en silencio y devuelve `consumo_real: null` (no rompe la API). `_cargar_historico()` extrae fecha/hora por slicing porque pandas 3.x rechaza timezones mezcladas (`+01:00`/`+02:00`) en `pd.to_datetime`.
 - El CSV del dataset pesa varios MB: **no subirlo a git**, el `.gitignore` raíz ignora `*.csv` y `modelo/data/`.
-- El `modelo.pkl` (joblib) se carga UNA vez al arrancar el backend (busca `backend/modelo.pkl` y luego `modelo/modelo.pkl`); mientras no exista, usa precio simulado.
-- `extract_features()` en `backend/preprocessing.py` es provisional con orden `[hora, día_semana, mes, es_fin_de_semana]`. Cuando Parte 1 entregue el modelo, ese orden debe coincidir exactamente con el de entrenamiento o las predicciones fallan en silencio.
+- Hay una copia huérfana y accidental del dataset en la raíz (`energy_dataset.csv/`); está gitignored, es ruido no versionado y el backend/train.py sólo leen `modelo/data/energy_dataset.csv`. No la confundas con la fuente real.
+- El `modelo.pkl` (joblib) se carga UNA vez al arrancar el backend (busca `backend/modelo.pkl` y luego `modelo/modelo.pkl`); mientras no exista, usa consumo simulado.
+- `extract_features()` está DUPLICADA a propósito: en `backend/preprocessing.py` y en `modelo/train.py` (ambas con orden `[hora, día_semana, mes, es_fin_de_semana]`). Si cambias una, cambia la otra en paralelo o las predicciones fallan en silencio.
 
 ## Comandos
 
-- `frontend/` (no hay `node_modules` aún): `npm install`; dev: `npm run dev` (Vite); build: `npm run build`; lint: `npm run lint` (oxlint); tests: `npm test` (Vitest, `vi.mock` a `./api/predict`, no necesitan backend); test único: `npx vitest run src/App.test.jsx`.
-- `backend/` (desde `backend/`, sin `.venv` creado aún): setup `python -m venv .venv` + `.venv\Scripts\pip install -r requirements.txt`; servidor `.venv\Scripts\python -m uvicorn main:app --reload` (puerto 8000, Windows usa `Scripts/`, no `bin/`); tests `.venv\Scripts\python -m pytest tests` (el `conftest.py` de la raíz hace importable `main`, pytest corre desde `backend/`); test único: `.venv\Scripts\python -m pytest tests/test_api.py::test_predict_exitoso`.
-- `modelo/`: sin código aún; consultar README para lo que debe crear Parte 1.
+- `frontend/` (npm ya instalado, `node_modules` presente): dev: `npm run dev` (Vite); build: `npm run build`; lint: `npm run lint` (oxlint); tests: `npm test` (Vitest, `vi.mock` a `./api/predict`, no necesitan backend); test único: `npx vitest run src/App.test.jsx`.
+- `backend/` (desde `backend/`; `.venv` ya creado): setup inicial `python -m venv .venv` + `.venv\Scripts\pip install -r requirements.txt`; servidor `.venv\Scripts\python -m uvicorn main:app --reload` (puerto 8000, Windows usa `Scripts/`, no `bin/`); tests `.venv\Scripts\python -m pytest tests` (el `conftest.py` de `backend/` hace importable `main`, pytest corre desde `backend/`); test único: `.venv\Scripts\python -m pytest tests/test_api.py::test_predict_exitoso`.
+- `modelo/` (desde `modelo/`; `.venv` ya creado, requiere `data/energy_dataset.csv`): reentrenar y regenerar `modelo.pkl` con `.venv\Scripts\python train.py` (RandomForest, al final reentrena con todo el dataset y guarda el `.pkl`).
 
 ## Convenciones
 
 - Documento (README) y UI en español; respeta ese idioma.
-- Integración final: prueba end-to-end llenando el form (fecha+hora) y verificando que llegue `precio_predicho`.
+- Integración final: prueba end-to-end llenando el form (fecha+hora) y verificando que llegue `consumo_predicho`.

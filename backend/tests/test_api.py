@@ -19,9 +19,9 @@ def test_predict_exitoso(client):
     resp = client.post("/predict", json={"fecha": "2026-08-11", "hora": 14})
     assert resp.status_code == 200
     data = resp.json()
-    assert set(data) == {"precio_predicho", "unidad"}
-    assert data["unidad"] == "EUR/MWh"
-    assert isinstance(data["precio_predicho"], (int, float))
+    assert set(data) == {"consumo_predicho", "unidad"}
+    assert data["unidad"] == "MW"
+    assert isinstance(data["consumo_predicho"], (int, float))
 
 
 def test_predict_hora_fuera_de_rango(client):
@@ -60,20 +60,64 @@ def test_predict_24h(client):
     assert resp.status_code == 200
     data = resp.json()
     assert data["fecha"] == "2026-08-11"
-    assert data["unidad"] == "EUR/MWh"
-    assert len(data["precios"]) == 24
-    assert [p["hora"] for p in data["precios"]] == list(range(24))
-    assert all(isinstance(p["precio_predicho"], (int, float)) for p in data["precios"])
+    assert data["unidad"] == "MW"
+    assert len(data["consumos"]) == 24
+    assert [p["hora"] for p in data["consumos"]] == list(range(24))
+    assert all(isinstance(p["consumo_predicho"], (int, float)) for p in data["consumos"])
+
+
+def test_predict_rango_exitoso(client):
+    resp = client.post(
+        "/predict/rango",
+        json={"fecha_inicio": "2026-07-01", "fecha_fin": "2026-07-03"},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["fecha_inicio"] == "2026-07-01"
+    assert data["fecha_fin"] == "2026-07-03"
+    assert data["unidad"] == "MW"
+    assert len(data["dias"]) == 3
+    assert [d["fecha"] for d in data["dias"]] == ["2026-07-01", "2026-07-02", "2026-07-03"]
+    for dia in data["dias"]:
+        assert len(dia["consumos"]) == 24
+        assert all(isinstance(c["consumo_predicho"], (int, float)) for c in dia["consumos"])
+
+
+def test_predict_rango_invertido(client):
+    resp = client.post(
+        "/predict/rango",
+        json={"fecha_inicio": "2026-07-10", "fecha_fin": "2026-07-01"},
+    )
+    assert resp.status_code == 422
+    assert "error" in resp.json()
+
+
+def test_predict_rango_muy_largo(client):
+    resp = client.post(
+        "/predict/rango",
+        json={"fecha_inicio": "2025-01-01", "fecha_fin": "2026-12-31"},
+    )
+    assert resp.status_code == 422
+    assert "error" in resp.json()
+
+
+def test_predict_rango_fecha_invalida(client):
+    resp = client.post(
+        "/predict/rango",
+        json={"fecha_inicio": "01/07/2026", "fecha_fin": "2026-07-03"},
+    )
+    assert resp.status_code == 422
+    assert "error" in resp.json()
 
 
 def test_predict_real_sin_dataset(client):
     resp = client.post("/predict/real", json={"fecha": "2026-08-11", "hora": 14})
     assert resp.status_code == 200
     data = resp.json()
-    assert set(data) == {"fecha", "hora", "precio_predicho", "precio_real", "unidad"}
+    assert set(data) == {"fecha", "hora", "consumo_predicho", "consumo_real", "unidad"}
     assert data["hora"] == 14
-    assert data["unidad"] == "EUR/MWh"
-    assert data["precio_real"] is None  # sin dataset histórico de Parte 1 aún
+    assert data["unidad"] == "MW"
+    assert data["consumo_real"] is None  # la fecha 2026 no está en el dataset histórico
 
 
 def test_cors_habilitado(client):

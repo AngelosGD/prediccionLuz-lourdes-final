@@ -1,4 +1,4 @@
-# Proyecto: Predicción de Precios de Luz
+# Proyecto: Predicción de Consumo Eléctrico
 
 **Materia:** Minería de Datos (Prof. Lourdes Merino)
 **Entrega:** Martes
@@ -9,7 +9,7 @@
 
 ## 1. Objetivo del proyecto
 
-Construir una página web que prediga el precio de la luz (EUR/MWh) a partir de una fecha y hora que el usuario ingresa en un formulario. El modelo se entrena una sola vez con datos históricos del dataset y luego se consume desde una API.
+Construir una página web que prediga el **consumo eléctrico (MW)** a partir de una fecha y hora que el usuario ingresa en un formulario, y que muestre una gráfica del consumo de las 24 horas del día seleccionado. El modelo se entrena una sola vez con datos históricos del dataset (`total load actual`) y luego se consume desde una API.
 
 ---
 
@@ -18,7 +18,7 @@ Construir una página web que prediga el precio de la luz (EUR/MWh) a partir de 
 Como cada parte es independiente, cada quien puede trabajar en su propia carpeta sin pisar el trabajo de los demás. Estructura sugerida para el repo compartido:
 
 ```
-prediccion-precios-luz/
+prediccion-consumo-luz/
 ├── modelo/                      # Parte 1 — Datos y Modelo
 │   ├── data/
 │   │   └── energy_dataset.csv   # dataset de Kaggle (NO subir a git, ver sección 6)
@@ -57,11 +57,11 @@ El proyecto se divide en **3 partes independientes entre sí**. Ninguna depende 
 **No depende de nada más.** Trabaja directo con el dataset descargado.
 
 Responsabilidades:
-- Exploración de datos (EDA): revisar columnas, nulos, distribución del precio
+- Exploración de datos (EDA): revisar columnas, nulos, distribución del consumo
 - Limpieza del dataset
 - `preprocess_data(df)`: limpia y prepara el dataset completo para entrenamiento
 - `extract_features(fecha, hora)`: convierte una fecha y hora en las features numéricas que el modelo espera (hora, día de la semana, mes, es_fin_de_semana). **Esta función se documenta tal cual para que Parte 2 la pueda replicar/importar.**
-- Entrenar un modelo (sugerido: `RandomForestRegressor` de scikit-learn) usando esas features contra la columna `price actual`
+- Entrenar un modelo (sugerido: `RandomForestRegressor` de scikit-learn) usando esas features contra la columna `total load actual`
 - Medir el error del modelo (MAE o RMSE) para reportar qué tan bueno es
 - Guardar el modelo entrenado con `joblib.dump()` como `modelo.pkl`
 
@@ -69,13 +69,13 @@ Responsabilidades:
 
 ### Parte 2 — Backend / API (FastAPI)
 
-**No depende de que el modelo real ya exista.** Mientras Parte 1 no entregue el `.pkl`, el endpoint regresa un precio simulado (ej. `random.uniform(40, 80)`) que cumple exactamente el contrato de la sección 3.
+**No depende de que el modelo real ya exista.** Mientras Parte 1 no entregue el `.pkl`, el endpoint regresa un consumo simulado (rango plausible 18,000–41,000 MW) que cumple exactamente el contrato de la sección 3.
 
 Responsabilidades:
 - Armar el proyecto FastAPI con `CORSMiddleware` habilitado desde el día 1 (necesario para que React pueda conectarse en local)
 - Endpoint `POST /predict` siguiendo el contrato exacto
 - Validación de los datos de entrada (que `hora` esté entre 0 y 23, que `fecha` sea un formato válido) y manejo de errores como en el contrato
-- Cuando Parte 1 entregue el `modelo.pkl`, se carga una sola vez al arrancar el servidor y se reemplaza la función que generaba el precio random por una que llama `modelo.predict()` usando `extract_features()` de Parte 1. Es el único cambio necesario.
+- Cuando Parte 1 entregue el `modelo.pkl`, se carga una sola vez al arrancar el servidor y se reemplaza la función que generaba el consumo random por una que llama `modelo.predict()` usando `extract_features()` de Parte 1. Es el único cambio necesario.
 
 **Entregable final:** API corriendo en local (ej. `http://localhost:8000`) con `/predict` funcionando contra el modelo real.
 
@@ -86,11 +86,11 @@ Responsabilidades:
 Responsabilidades:
 - Formulario con selector de fecha y hora
 - Validación básica en el cliente (que se haya seleccionado fecha y hora antes de poder enviar)
-- Mostrar el resultado de la predicción (`precio_predicho` + `unidad`)
+- Mostrar el resultado de la predicción (`consumo_predicho` + `unidad`)
 - Manejo del estado de error (si el backend regresa el JSON de error del contrato, mostrarlo de forma legible)
 - Al final, cuando el backend de Parte 2 esté listo, se reemplaza `mockPredict()` por un `fetch('http://localhost:8000/predict', {...})` real. Es el único cambio necesario.
 
-**Entregable final:** interfaz funcional que consume la API real y muestra la predicción.
+**Entregable final:** interfaz funcional que consume la API real y muestra la predicción de consumo + la gráfica de 24 horas.
 
 ---
 
@@ -116,15 +116,15 @@ Este formato es fijo y **no debe cambiar** sin que las 3 partes se pongan de acu
 
 ```json
 {
-  "precio_predicho": 62.35,
-  "unidad": "EUR/MWh"
+  "consumo_predicho": 25385.12,
+  "unidad": "MW"
 }
 ```
 
 | Campo             | Tipo   | Notas                                  |
 |-------------------|--------|------------------------------------------|
-| `precio_predicho` | float  | Redondeado a 2 decimales                |
-| `unidad`          | string | Fija, siempre `"EUR/MWh"`               |
+| `consumo_predicho` | float  | Redondeado a 2 decimales, en megawatts  |
+| `unidad`          | string | Fija, siempre `"MW"`                    |
 
 ### Response de error (400 / 422)
 
@@ -147,7 +147,7 @@ Este formato es fijo y **no debe cambiar** sin que las 3 partes se pongan de acu
 
 `fecha` y `hora` respetan las reglas de la sección 4 (ISO string, hora integer 0-23, misma forma de error).
 
-**¿Quién lo implementa?** Estos endpoints los agrega **Parte 2 (backend)**. El frontend de Parte 3 ya los consume con mocks (no toca nada del servidor). `precio_real` se lee del dataset histórico de Parte 1; si la fecha no está en el dataset, `precio_real: null`.
+**¿Quién lo implementa?** Estos endpoints los agrega **Parte 2 (backend)**. El frontend de Parte 3 ya los consume con mocks (no toca nada del servidor). `consumo_real` se lee del dataset histórico de Parte 1; si la fecha no está en el dataset, `consumo_real: null`.
 
 ### `POST /predict/24h` — predicción de las 24 horas de un día
 
@@ -164,19 +164,19 @@ Sirve para pintar la gráfica de las próximas 24 horas del frontend.
 ```json
 {
   "fecha": "2026-08-11",
-  "unidad": "EUR/MWh",
-  "precios": [
-    { "hora": 0, "precio_predicho": 45.12 },
-    { "hora": 1, "precio_predicho": 42.88 },
+  "unidad": "MW",
+  "consumos": [
+    { "hora": 0, "consumo_predicho": 25385.12 },
+    { "hora": 1, "consumo_predicho": 24382.0 },
     "...hasta el 23..."
   ]
 }
 ```
-`precios` siempre tiene 24 elementos, de `hora: 0` a `hora: 23`. El frontend calcula la hora más cara y la más barata (no hace falta que lo haga el backend).
+`consumos` siempre tiene 24 elementos, de `hora: 0` a `hora: 23`. El frontend calcula la hora de mayor y menor consumo (no hace falta que lo haga el backend).
 
 ### `POST /predict/real` — comparación predicho vs real
 
-Muestra cuánto acertó el modelo para una fecha pasada (demo de Minería de Datos). Para el backend: `precio_real` se lee del dataset histórico; si la fecha no está en el dataset, manda `precio_real: null`.
+Muestra cuánto acertó el modelo para una fecha pasada (demo de Minería de Datos). Para el backend: `consumo_real` se lee del dataset histórico; si la fecha no está en el dataset, manda `consumo_real: null`.
 
 Request:
 ```json
@@ -191,11 +191,46 @@ Request:
 {
   "fecha": "2026-08-11",
   "hora": 14,
-  "precio_predicho": 62.35,
-  "precio_real": 58.40,
-  "unidad": "EUR/MWh"
+  "consumo_predicho": 31200.5,
+  "consumo_real": 30850.3,
+  "unidad": "MW"
 }
 ```
+
+### `POST /predict/rango` — predicción de un rango de fechas
+
+Sirve para la gráfica de tendencia del frontend: predice las 24 horas de **cada día** del rango.
+
+**Request:**
+```json
+{
+  "fecha_inicio": "2026-07-01",
+  "fecha_fin": "2026-07-07"
+}
+```
+
+**Response 200:**
+```json
+{
+  "fecha_inicio": "2026-07-01",
+  "fecha_fin": "2026-07-07",
+  "unidad": "MW",
+  "dias": [
+    {
+      "fecha": "2026-07-01",
+      "consumos": [
+        { "hora": 0, "consumo_predicho": 25385.12 },
+        { "hora": 1, "consumo_predicho": 24382.0 },
+        "...hasta el 23..."
+      ]
+    },
+    "...uno por cada día del rango..."
+  ]
+}
+```
+`dias` tiene un elemento por día del rango (inclusive), cada uno con sus 24 `consumos`. El frontend calcula el día de mayor y menor consumo.
+
+**Errores (422):** fecha con formato inválido, `fecha_fin` anterior a `fecha_inicio`, o rango mayor a 366 días.
 
 ---
 
@@ -207,7 +242,7 @@ Request:
    - Parte 2 arma FastAPI con `/predict` mockeado
    - Parte 3 arma el form de React con `mockPredict()`
 3. Integración final: Parte 2 conecta el `modelo.pkl` real, Parte 3 conecta el fetch real
-4. Prueba end-to-end: llenar el form, ver que el precio predicho llegue correctamente
+4. Prueba end-to-end: llenar el form, ver que el consumo predicho llegue correctamente
 
 ---
 
@@ -227,7 +262,7 @@ Cada integrante corre opencode dentro de la carpeta de su parte y le da un promp
 **Para Parte 1 (Datos y Modelo):**
 ```
 Ayúdame a iniciar un proyecto de Python para entrenar un modelo de predicción
-de precios de luz. Necesito: un entorno virtual, requirements.txt con pandas,
+de consumo eléctrico. Necesito: un entorno virtual, requirements.txt con pandas,
 scikit-learn y joblib, y la estructura de carpetas data/ (para el dataset) y
 model/ (para guardar el modelo entrenado). El dataset es
 "energy-consumption-generation-prices-and-weather" de Kaggle.
@@ -238,8 +273,8 @@ model/ (para guardar el modelo entrenado). El dataset es
 Ayúdame a iniciar un proyecto de FastAPI. Necesito: un entorno virtual,
 requirements.txt con fastapi, uvicorn, pandas, scikit-learn y joblib,
 CORSMiddleware configurado desde el inicio, y un endpoint POST /predict
-que por ahora regrese un precio simulado en este formato:
-{"precio_predicho": 62.35, "unidad": "EUR/MWh"}
+que por ahora regrese un consumo simulado en este formato:
+{"consumo_predicho": 25385.12, "unidad": "MW"}
 recibiendo como input {"fecha": "YYYY-MM-DD", "hora": 0-23}.
 ```
 
@@ -248,7 +283,7 @@ recibiendo como input {"fecha": "YYYY-MM-DD", "hora": 0-23}.
 Ayúdame a iniciar un proyecto de React con Vite. Necesito un formulario con
 selector de fecha y hora, un botón de enviar, y una función mockPredict()
 que regrese un JSON fake tipo
-{"precio_predicho": 62.35, "unidad": "EUR/MWh"} para poder desarrollar
+{"consumo_predicho": 25385.12, "unidad": "MW"} para poder desarrollar
 la interfaz sin depender del backend todavía.
 ```
 

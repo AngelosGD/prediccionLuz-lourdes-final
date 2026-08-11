@@ -11,13 +11,13 @@ function hoyISO() {
 export default function Prediccion24h() {
   const [fecha, setFecha] = useState(hoyISO())
   const [cargando, setCargando] = useState(false)
-  const [precios, setPrecios] = useState(null)
+  const [consumos, setConsumos] = useState(null)
 
   const cargar = async () => {
     setCargando(true)
     try {
       const datos = await mockPredictions24h(fecha)
-      setPrecios(datos.precios)
+      setConsumos(datos.consumos)
     } finally {
       setCargando(false)
     }
@@ -30,7 +30,7 @@ export default function Prediccion24h() {
 
   return (
     <section className="tarjeta">
-      <h2>Próximas 24 horas</h2>
+      <h2>Consumo próximas 24 horas</h2>
       <p className="descripcion">Predicción hora a hora para el día seleccionado.</p>
 
       <div className="fila">
@@ -44,47 +44,47 @@ export default function Prediccion24h() {
         </button>
       </div>
 
-      {precios && <Grafico precios={precios} />}
+      {consumos && <Grafico consumos={consumos} />}
     </section>
   )
 }
 
-function Grafico({ precios }) {
-  const valores = precios.map((p) => p.precio_predicho)
+function Grafico({ consumos }) {
+  const valores = consumos.map((p) => p.consumo_predicho)
   const max = Math.max(...valores)
   const min = Math.min(...valores)
-  const horaCara = precios.find((p) => p.precio_predicho === max)
-  const horaBarata = precios.find((p) => p.precio_predicho === min)
+  const horaMax = consumos.find((p) => p.consumo_predicho === max)
+  const horaMin = consumos.find((p) => p.consumo_predicho === min)
   const dosDigitos = (h) => String(h).padStart(2, '0')
 
   return (
     <div className="grafico-caja">
       <div className="leyenda">
-        <p className="mas-cara" data-testid="hora-mas-cara">
-          Hora más cara: <strong>{dosDigitos(horaCara.hora)}:00</strong> — {max}{' '}
-          EUR/MWh
+        <p className="mas-cara" data-testid="hora-mas-consumo">
+          Hora de mayor consumo: <strong>{dosDigitos(horaMax.hora)}:00</strong> — {max}{' '}
+          MW
         </p>
-        <p className="mas-barata" data-testid="hora-mas-barata">
-          Hora más barata: <strong>{dosDigitos(horaBarata.hora)}:00</strong> — {min}{' '}
-          EUR/MWh
+        <p className="mas-barata" data-testid="hora-menos-consumo">
+          Hora de menor consumo: <strong>{dosDigitos(horaMin.hora)}:00</strong> — {min}{' '}
+          MW
         </p>
       </div>
       <div className="grafico">
-        {precios.map((p) => {
-          const esCara = p.precio_predicho === max
-          const esBarata = p.precio_predicho === min
+        {consumos.map((p) => {
+          const esMax = p.consumo_predicho === max
+          const esMin = p.consumo_predicho === min
           return (
             <div
               key={p.hora}
               className={
-                esCara
+                esMax
                   ? 'barra mas-cara'
-                  : esBarata
+                  : esMin
                     ? 'barra mas-barata'
                     : 'barra'
               }
-              style={{ height: `${Math.max((p.precio_predicho / max) * 100, 4)}%` }}
-              title={`${dosDigitos(p.hora)}:00 — ${p.precio_predicho} EUR/MWh`}
+              style={{ height: `${Math.max((p.consumo_predicho / max) * 100, 4)}%` }}
+              title={`${dosDigitos(p.hora)}:00 — ${p.consumo_predicho} MW`}
             />
           )
         })}

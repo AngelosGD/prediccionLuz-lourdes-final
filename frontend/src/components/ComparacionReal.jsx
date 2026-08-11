@@ -29,7 +29,7 @@ export default function ComparacionReal() {
 
   return (
     <section className="tarjeta">
-      <h2>Comparación con el precio real</h2>
+      <h2>Comparación con el consumo real</h2>
       <p className="descripcion">
         Para fechas pasadas, mira qué tan acertada fue la predicción del modelo.
       </p>
@@ -65,14 +65,14 @@ export default function ComparacionReal() {
           <div className="item">
             <span>Predicho</span>
             <strong className="valor">
-              {comparacion.precio_predicho} <span>{comparacion.unidad}</span>
+              {comparacion.consumo_predicho} <span>{comparacion.unidad}</span>
             </strong>
           </div>
           <div className="item">
             <span>Real</span>
-            {comparacion.precio_real != null ? (
+            {comparacion.consumo_real != null ? (
               <strong className="valor">
-                {comparacion.precio_real} <span>{comparacion.unidad}</span>
+                {comparacion.consumo_real} <span>{comparacion.unidad}</span>
               </strong>
             ) : (
               <strong className="sin-dato">Sin dato real aún</strong>

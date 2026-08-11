@@ -1,10 +1,11 @@
-"""Entrenamiento del modelo de predicción de precios de luz (Parte 1).
+"""Entrenamiento del modelo de predicción de consumo eléctrico (Parte 1).
 
 Uso (desde modelo/):
     .venv/Scripts/python train.py
 
-Genera modelo.pkl con joblib. El orden de features DEBE coincidir con el que
-usa el backend en extract_features(): [hora, día_semana, mes, es_fin_de_semana].
+Genera modelo.pkl con joblib (predice total load actual, en MW). El orden de
+features DEBE coincidir con el que usa el backend en extract_features():
+[hora, día_semana, mes, es_fin_de_semana].
 """
 
 from datetime import date
@@ -34,7 +35,7 @@ def extract_features(fecha: str, hora: int) -> list[float]:
 
 def cargar_y_limpiar():
     df = pd.read_csv(DATASET_CSV)
-    df = df[["time", "price actual"]].dropna(subset=["price actual"])
+    df = df[["time", "total load actual"]].dropna(subset=["total load actual"])
 
     fecha = pd.to_datetime(df["time"].str.slice(0, 10), errors="coerce")
     hora = pd.to_numeric(df["time"].str.slice(11, 13), errors="coerce")
@@ -44,11 +45,11 @@ def cargar_y_limpiar():
             "dia_semana": fecha.dt.weekday,
             "mes": fecha.dt.month,
             "es_fin_de_semana": (fecha.dt.weekday >= 5).astype(int),
-            "price actual": df["price actual"],
+            "total load actual": df["total load actual"],
         }
     ).dropna()
 
-    y = df["price actual"]
+    y = df["total load actual"]
     X = df[FEATURES]
     return X, y
 
@@ -71,8 +72,8 @@ def main():
     mae = mean_absolute_error(y_test, pred)
     rmse = mean_squared_error(y_test, pred) ** 0.5
     r2 = modelo.score(X_test, y_test)
-    print(f"MAE : {mae:.3f} EUR/MWh")
-    print(f"RMSE: {rmse:.3f} EUR/MWh")
+    print(f"MAE : {mae:.3f} MW")
+    print(f"RMSE: {rmse:.3f} MW")
     print(f"R2  : {r2:.4f}")
 
     # Reentrenar con todo el dataset para el .pkl (orden de FEATURES)
