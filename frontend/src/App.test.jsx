@@ -6,13 +6,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import App from './App'
 
 vi.mock('./api/predict', () => ({
-  mockPredict: vi.fn(),
-  mockPredictions24h: vi.fn(),
-  mockComparar: vi.fn(),
-  mockPredictRango: vi.fn(),
+  predict: vi.fn(),
+  predictions24h: vi.fn(),
+  comparar: vi.fn(),
+  predictRango: vi.fn(),
 }))
 
-import { mockPredict, mockPredictions24h, mockComparar, mockPredictRango } from './api/predict'
+import { predict, predictions24h, comparar, predictRango } from './api/predict'
 
 const CONSUMOS_24 = Array.from({ length: 24 }, (_, h) => ({
   hora: h,
@@ -38,23 +38,23 @@ async function llenarFormulario() {
 
 describe('App (simulación de UI)', () => {
   beforeEach(() => {
-    mockPredict.mockReset()
-    mockPredictions24h.mockReset()
-    mockPredictions24h.mockResolvedValue({
+    predict.mockReset()
+    predictions24h.mockReset()
+    predictions24h.mockResolvedValue({
       fecha: '2026-08-11',
       unidad: 'MW',
       consumos: CONSUMOS_24,
     })
-    mockComparar.mockReset()
-    mockComparar.mockResolvedValue({
+    comparar.mockReset()
+    comparar.mockResolvedValue({
       fecha: '2026-08-11',
       hora: 14,
       consumo_predicho: 31200,
       consumo_real: null,
       unidad: 'MW',
     })
-    mockPredictRango.mockReset()
-    mockPredictRango.mockResolvedValue({
+    predictRango.mockReset()
+    predictRango.mockResolvedValue({
       fecha_inicio: '2026-07-01',
       fecha_fin: '2026-07-03',
       unidad: 'MW',
@@ -73,11 +73,11 @@ describe('App (simulación de UI)', () => {
     render(<App />)
     const boton = screen.getByRole('button', { name: /predecir consumo/i })
     expect(boton).toBeDisabled()
-    expect(mockPredict).not.toHaveBeenCalled()
+    expect(predict).not.toHaveBeenCalled()
   })
 
   it('muestra el resultado tras llenar fecha y hora', async () => {
-    mockPredict.mockResolvedValue({
+    predict.mockResolvedValue({
       consumo_predicho: 31200,
       unidad: 'MW',
     })
@@ -89,7 +89,7 @@ describe('App (simulación de UI)', () => {
     expect(boton).toBeEnabled()
     await userEvent.click(boton)
 
-    expect(mockPredict).toHaveBeenCalledWith('2026-08-11', 14)
+    expect(predict).toHaveBeenCalledWith('2026-08-11', 14)
 
     await waitFor(() => {
       expect(screen.getByText('MW')).toBeInTheDocument()
@@ -103,7 +103,7 @@ describe('App (simulación de UI)', () => {
 
   it('cambia el texto del botón mientras calcula', async () => {
     const liberar = vi.fn()
-    mockPredict.mockReturnValue(
+    predict.mockReturnValue(
       new Promise((resolve) => {
         liberar.mockImplementation(() =>
           resolve({ consumo_predicho: 30000, unidad: 'MW' }),
@@ -132,7 +132,7 @@ describe('App (simulación de UI)', () => {
   })
 
   it('muestra el error del contrato cuando el envío falla', async () => {
-    mockPredict.mockRejectedValue(new Error('hora debe estar entre 0 y 23'))
+    predict.mockRejectedValue(new Error('hora debe estar entre 0 y 23'))
 
     render(<App />)
     await llenarFormulario()
@@ -178,7 +178,7 @@ describe('App (simulación de UI)', () => {
   })
 
   it('muestra el consumo real cuando el backend lo entrega', async () => {
-    mockComparar.mockResolvedValue({
+    comparar.mockResolvedValue({
       fecha: '2026-08-11',
       hora: 14,
       consumo_predicho: 31200,
@@ -227,7 +227,7 @@ describe('App (simulación de UI)', () => {
 
     const boton = screen.getByRole('button', { name: 'Predecir rango' })
     expect(boton).toBeDisabled()
-    expect(mockPredictRango).not.toHaveBeenCalled()
+    expect(predictRango).not.toHaveBeenCalled()
   })
 
   it('muestra la gráfica del rango tras enviar fechas', async () => {
@@ -238,7 +238,7 @@ describe('App (simulación de UI)', () => {
     await userEvent.type(screen.getByLabelText('Hasta'), '2026-07-03')
     await userEvent.click(screen.getByRole('button', { name: 'Predecir rango' }))
 
-    expect(mockPredictRango).toHaveBeenCalledWith('2026-07-01', '2026-07-03')
+    expect(predictRango).toHaveBeenCalledWith('2026-07-01', '2026-07-03')
 
     await waitFor(() => {
       expect(screen.getByText(/predicción del rango/i)).toBeInTheDocument()

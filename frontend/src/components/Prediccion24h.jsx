@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { mockPredictions24h } from '../api/predict'
+import { predictions24h } from '../api/predict'
 
 function hoyISO() {
   const d = new Date()
@@ -16,7 +16,7 @@ export default function Prediccion24h() {
   const cargar = async () => {
     setCargando(true)
     try {
-      const datos = await mockPredictions24h(fecha)
+      const datos = await predictions24h(fecha)
       setConsumos(datos.consumos)
     } finally {
       setCargando(false)

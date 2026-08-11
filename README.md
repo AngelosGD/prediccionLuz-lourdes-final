@@ -39,7 +39,7 @@ prediccion-consumo-luz/
     │   ├── components/
     │   │   └── FormPrediccion.jsx
     │   └── api/
-    │       └── predict.js       # aquí vive mockPredict() y luego el fetch real
+    │       └── predict.js       # predict(), predictions24h(), comparar(), predictRango() (fetch reales)
     ├── package.json
     └── vite.config.js
 ```
@@ -69,26 +69,26 @@ Responsabilidades:
 
 ### Parte 2 — Backend / API (FastAPI)
 
-**No depende de que el modelo real ya exista.** Mientras Parte 1 no entregue el `.pkl`, el endpoint regresa un consumo simulado (rango plausible 18,000–41,000 MW) que cumple exactamente el contrato de la sección 3.
+**No depende de que el modelo real ya exista.** El endpoint regresa un consumo simulado (rango plausible 18,000–41,000 MW) que cumple exactamente el contrato de la sección 3, pero al arrancar carga `modelo.pkl` (si existe) y predice contra el modelo real.
 
 Responsabilidades:
 - Armar el proyecto FastAPI con `CORSMiddleware` habilitado desde el día 1 (necesario para que React pueda conectarse en local)
 - Endpoint `POST /predict` siguiendo el contrato exacto
 - Validación de los datos de entrada (que `hora` esté entre 0 y 23, que `fecha` sea un formato válido) y manejo de errores como en el contrato
-- Cuando Parte 1 entregue el `modelo.pkl`, se carga una sola vez al arrancar el servidor y se reemplaza la función que generaba el consumo random por una que llama `modelo.predict()` usando `extract_features()` de Parte 1. Es el único cambio necesario.
+- `cargar_modelo()` carga el `modelo.pkl` una sola vez al arrancar (busca `backend/modelo.pkl` y luego `modelo/modelo.pkl`) y `predecir_consumo()` llama `modelo.predict()` usando `extract_features()` de Parte 1; mientras no exista el `.pkl`, usa consumo simulado.
 
 **Entregable final:** API corriendo en local (ej. `http://localhost:8000`) con `/predict` funcionando contra el modelo real.
 
 ### Parte 3 — Frontend (React)
 
-**No depende de que el backend esté corriendo.** Se desarrolla usando una función `mockPredict()` que regresa un JSON fake siguiendo exactamente el contrato de la sección 3, en vez de hacer un fetch real.
+**Necesita que el backend esté corriendo en `http://localhost:8000`.** El frontend consume la API real desde `frontend/src/api/predict.js` (`predict()`, `predictions24h()`, `comparar()`, `predictRango()`).
 
 Responsabilidades:
 - Formulario con selector de fecha y hora
 - Validación básica en el cliente (que se haya seleccionado fecha y hora antes de poder enviar)
 - Mostrar el resultado de la predicción (`consumo_predicho` + `unidad`)
 - Manejo del estado de error (si el backend regresa el JSON de error del contrato, mostrarlo de forma legible)
-- Al final, cuando el backend de Parte 2 esté listo, se reemplaza `mockPredict()` por un `fetch('http://localhost:8000/predict', {...})` real. Es el único cambio necesario.
+- Gráfica de las próximas 24 horas y comparación con el consumo real (`/predict/24h` y `/predict/real`)
 
 **Entregable final:** interfaz funcional que consume la API real y muestra la predicción de consumo + la gráfica de 24 horas.
 
@@ -239,9 +239,9 @@ Sirve para la gráfica de tendencia del frontend: predice las 24 horas de **cada
 1. Acordar el contrato de la sección 3 con el equipo (ya está definido arriba, solo confirmarlo)
 2. Cada quien arranca su parte en paralelo:
    - Parte 1 hace EDA → preprocesamiento → entrenamiento → guarda `modelo.pkl`
-   - Parte 2 arma FastAPI con `/predict` mockeado
-   - Parte 3 arma el form de React con `mockPredict()`
-3. Integración final: Parte 2 conecta el `modelo.pkl` real, Parte 3 conecta el fetch real
+   - Parte 2 arma FastAPI con `/predict` (simulado hasta que llegue el `.pkl`)
+   - Parte 3 arma el form de React consumiendo la API
+3. Integración final: Parte 2 conecta el `modelo.pkl` real, Parte 3 ya está conectado al fetch real
 4. Prueba end-to-end: llenar el form, ver que el consumo predicho llegue correctamente
 
 ---
@@ -281,10 +281,9 @@ recibiendo como input {"fecha": "YYYY-MM-DD", "hora": 0-23}.
 **Para Parte 3 (Frontend):**
 ```
 Ayúdame a iniciar un proyecto de React con Vite. Necesito un formulario con
-selector de fecha y hora, un botón de enviar, y una función mockPredict()
-que regrese un JSON fake tipo
-{"consumo_predicho": 25385.12, "unidad": "MW"} para poder desarrollar
-la interfaz sin depender del backend todavía.
+selector de fecha y hora y un botón de enviar, con una función predict()
+que haga fetch a http://localhost:8000/predict para mostrar el consumo
+{"consumo_predicho": 25385.12, "unidad": "MW"} siguiendo el contrato de la sección 4.
 ```
 
 Cada quien puede pegarle a opencode este documento completo (o la sección que le corresponde) como contexto para que entienda el contrato y no se desvíe del formato acordado.
@@ -319,7 +318,7 @@ Cada parte se corre por separado, en su propia carpeta y entorno.
 
 **Parte 3 — Frontend** (en `frontend/`):
 1. `npm install`
-2. `npm run dev` → abre la URL que muestra Vite (usa `mockPredict()` por ahora)
+2. `npm run dev` → abre la URL que muestra Vite (consume el backend en `http://localhost:8000`; levántalo primero)
 
 ---
 

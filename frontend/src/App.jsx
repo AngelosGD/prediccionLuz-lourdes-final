@@ -3,7 +3,7 @@ import FormPrediccion from './components/FormPrediccion'
 import Prediccion24h from './components/Prediccion24h'
 import PrediccionRango from './components/PrediccionRango'
 import ComparacionReal from './components/ComparacionReal'
-import { mockPredict, mockPredictRango } from './api/predict'
+import { predict, predictRango } from './api/predict'
 import './App.css'
 
 function formatearFecha(iso) {
@@ -28,11 +28,11 @@ function App() {
     setConsultaRango(null)
     try {
       if (datos.tipo === 'rango') {
-        const resp = await mockPredictRango(datos.fechaInicio, datos.fechaFin)
+        const resp = await predictRango(datos.fechaInicio, datos.fechaFin)
         setConsultaRango({ inicio: formatearFecha(datos.fechaInicio), fin: formatearFecha(datos.fechaFin) })
         setResultadoRango(resp)
       } else {
-        const resp = await mockPredict(datos.fecha, datos.hora)
+        const resp = await predict(datos.fecha, datos.hora)
         setConsulta({ fecha: formatearFecha(datos.fecha), hora: datos.hora })
         setResultado(resp)
       }
