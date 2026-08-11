@@ -1,4 +1,4 @@
-"""Preprocesamiento para el modelo de predicción de precios de luz.
+"""Preprocesamiento para el modelo de predicción de consumo eléctrico.
 
 La versión oficial de extract_features() la entrega Parte 1 (Minería de Datos)
 junto con el modelo.pkl. Esta implementación provisional se reemplaza por la

@@ -191,7 +191,7 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="Predicción de precios de luz", lifespan=lifespan)
+app = FastAPI(title="Predicción de consumo eléctrico", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
